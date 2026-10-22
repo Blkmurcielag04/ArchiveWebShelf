@@ -13,7 +13,9 @@ START AND USE
 - Archive Shelf Beginner Guide.pdf: beginner instructions and diagrams.
 - ArchiveWebShelf Connection and Safety Guide.pdf: explains local connections and safety limits.
 - Archive Shelf Source Code.txt: copyable source snapshots for the main app and extension integration.
-- BUGS.txt: known issues and next-version improvement notes.
+- BUGS.txt: known issues, workarounds, and next-version improvement notes.
+- CHANGELOG.md: public release history.
+- .github/ISSUE_TEMPLATE/bug_report.md: bug report form offered by GitHub Issues.
 
 USER DATA
 - library/: archive storage created by the app. It is empty in this public starter copy.

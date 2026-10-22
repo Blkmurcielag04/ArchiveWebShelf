@@ -1,52 +1,70 @@
-ArchiveWebShelf — Bug List
-=========================
+ARCHIVE SHELF 1.0.0 - KNOWN ISSUES
+=================================
 
-Status labels: [OPEN] needs work; [RESOLVED] is fixed.
+This file records known problems and planned improvements. An OPEN item is
+not a feature promised for 1.0.0. A RESOLVED item records a confirmed fix.
 
-Open bugs and resolved fixes are listed here for reference.
+OPEN: NAV-001 - Back navigation can return to the wrong place
+-----------------------------------------------------------
+Status: Needs investigation.
+Two related navigation reports are grouped here. They involve different
+sets of controls; a single underlying cause has not been confirmed.
 
-1. [OPEN] Viewer Back arrow does not return to the folder
-   Status: Unresolved
-   Where: Archive Shelf's archive viewer toolbar
-   Expected: Clicking “← Back” should close the open archive and show its
-   containing folder, the same as “← Back to folder.”
-   Actual: The Back arrow still does not return to the folder reliably, even
-   though it was changed to call the same folder navigation action.
-   Reproduce: Open any WACZ from a folder, then click the viewer's “← Back”
-   arrow.
+Case A - Archive Shelf toolbar
+  Expected: The outer Back button returns to the containing Shelf folder.
+  Reported: It does not always leave the open archive, even though its
+  handler calls the same folder action as Back to folder.
+  Reproduce: Open a WACZ from a Shelf folder and click the outer Back button.
 
-2. [OPEN] Back inside a multi-view WACZ returns to the archive start page
-   Status: Known limitation / investigate later
-   Where: ReplayWeb.page controls while viewing
-   a multi-view WACZ whose views are displayed inside one captured page.
-   Expected: Back would return from “Being Human” to the previous song/view.
-   Actual: Back returns to the WACZ's start page. The archive indexes one
-   captured page (index.html); song views are displayed within that page, so
-   they may not have separate archived navigation history entries.
-   Reproduce: Open the WACZ, select “Being Human,” then use ReplayWeb.page's
-   in-archive Back control.
+Case B - Controls inside the replay viewer
+  Expected: Back returns to the previously viewed page or view.
+  Reported: In an archive with several views inside one captured page,
+  Back can return to the archive's start page.
+  Reproduce: Open a WACZ that changes views within one captured page,
+  switch views, and use the replay viewer's own Back control.
+  Limitation: A view change may not create a separate recorded page or
+  history entry. A capture may therefore contain fewer navigation steps
+  than were visible on the live site.
 
+Workaround: Use the Shelf's folder breadcrumbs to return to the organizer.
+When reporting this issue, specify whether the button is in Archive Shelf's
+outer toolbar or inside ReplayWeb.page.
 
-************* POINT 1 & 2 are dealing with the same Issue********************************************************************************
+PLANNED: CAP-001 - Interactive content requires manual capture
+------------------------------------------------------------
+Status: Deferred to a future version; current recording limitation.
+Where: Interactive or lazy-loaded pages, including music tab sites.
 
-3. [OPEN] Recorder needs manual interaction to capture dynamic page content
-   Status: Next-version improvement; the current recorder captures requests made
-   during the active recording session.
-   Where: Archive Shelf Recorder on interactive sites such as Ultimate Guitar.
-   Expected: Provide a focused, page-scoped way to capture useful on-page
-   variants and their assets (such as instrument views, transpose settings,
-   chord diagrams, or note samples) without manually exploring every control.
-   Keep unrelated links and site-wide crawling out of the capture.
-   Actual: Collapsed, interactive, or lazy-loaded content is absent until the
-   user opens it, changes a setting, scrolls, or plays it while recording.
-   Starting a recording reloads the page, so page state opened beforehand may
-   need to be restored during recording. A previous whole-site crawl collected
-   too much unrelated content.
-   Reproduce: Start a recording on an interactive music tab, leave its
-   instrument, transpose, and playback controls untouched, then stop and inspect
-   the archive. Those alternate views or samples are missing unless they were
-   loaded during the session.
-4. [RESOLVED] Recorder upload fails
-   Status: Resolved in Recorder 0.17.3; user confirmed the upload works.
-   Where: ArchiveWebShelf Recorder browser extension
-   Fix: Send the finished WACZ as a Blob body instead of a streamed request.
+Current behavior:
+  The recorder captures requests made while recording. Content may be
+  missing until you scroll, expand a panel, change a setting, or play it.
+  Starting a recording reloads the page, so settings opened beforehand
+  may need to be opened again during the recording.
+
+Example:
+  Alternate instrument views, transpose controls, chord diagrams, and
+  note samples may be absent unless used while recording.
+
+Current workaround:
+  Start recording, open the settings and views you want, play any samples
+  you need, wait for them to load, then stop and save. Playback or other
+  interactive features are not guaranteed to work in every archived site.
+
+Future direction:
+  Investigate capturing useful variants and their resources within the
+  selected page with less manual exploration. An earlier broad crawl
+  collected too much unrelated content. Automatic capture is not included
+  in 1.0.0, and no completion date has been set.
+
+RESOLVED: UPLOAD-001 - Finished recording could not be uploaded
+------------------------------------------------------------
+Status: Fixed before the 1.0.0 release; upload was confirmed working.
+Change: Send the finished WACZ as a Blob body rather than a streamed request.
+
+REPORT A NEW BUG
+---------------
+Use the repository's Issues tab and choose Bug report.
+Include the version, browser, steps, expected result, and actual result.
+Review screenshots and copied diagnostics before posting. Remove private
+folder names, local paths, page URLs, or other details you do not want public.
+Do not attach a personal WACZ unless you intend to share its contents.
