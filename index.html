@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArchiveWebShelf</title>
+  <style>
+    :root { font-family: "Segoe UI", Arial, sans-serif; color: #172033; background: #f3f5f9; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; }
+    header { padding: 7px 24px; color: white; background: #172b4d; display: flex; align-items: center; justify-content: space-between; }
+    header a { display: block; border-radius: 4px; }
+    header a:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+    header img { display: block; width: 300px; height: 61px; object-fit: contain; }
+    header span { color: #d1dbec; font-size: 13px; }
+    main { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: calc(100vh - 58px); }
+    aside { padding: 20px; background: white; border-right: 1px solid #dce2ec; }
+    article { padding: 26px; min-width: 0; }
+    h2 { margin: 0 0 14px; font-size: 15px; }
+    input, button { font: inherit; }
+    input[type=text] { display: block; width: 100%; padding: 10px; border: 1px solid #cbd3df; border-radius: 6px; }
+    button, .file-label { border: 0; border-radius: 6px; padding: 9px 12px; color: white; background: #315fcb; cursor: pointer; }
+    button:hover, .file-label:hover { background: #244da9; }
+    button:disabled { cursor: default; opacity: .5; }
+    .field { margin: 10px 0; }
+    .field label { display: block; margin-bottom: 5px; color: #42516a; font-size: 12px; }
+    .file-label { display: inline-block; margin-top: 7px; }
+    .file-label input { display: none; }
+    .hint, #status { color: #68758b; font-size: 12px; line-height: 1.5; }
+    #status { min-height: 20px; margin-top: 10px; }
+    #crumbs { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; color: #71809a; font-size: 14px; }
+    #crumbs button { padding: 5px 8px; color: #315fcb; background: transparent; }
+    #crumbs button:hover { background: #eaf0ff; }
+    #crumbs strong { color: #24334e; }
+    #entries { margin-top: 20px; border: 1px solid #dce2ec; border-radius: 9px; overflow: hidden; background: white; }
+    .entry { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 9px 13px; border-bottom: 1px solid #edf0f5; }
+    .entry:last-child { border-bottom: 0; }
+    .drop-target { outline: 2px solid #315fcb; outline-offset: -2px; background: #eaf0ff !important; }
+    .entry.archive-entry { cursor: grab; }
+    .entry-main { flex: 1; min-width: 0; }
+    .entry-title { display: block; width: 100%; padding: 6px 0; color: #315fcb; background: transparent; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+    .entry-title:hover { color: #183f9c; background: transparent; text-decoration: underline; }
+    .folder-title { color: #253650; font-weight: 600; }
+    .folder-title:hover { color: #315fcb; }
+    .entry-meta { color: #76839a; font-size: 12px; }
+    .delete, .move { padding: 6px 9px; color: #62708a; background: transparent; white-space: nowrap; }
+    .delete:hover { color: #a12a36; background: #fff0f1; }
+    .move:hover { color: #315fcb; background: #eaf0ff; }
+    #drop-zone { margin-top: 18px; padding: 16px; border: 2px dashed #b8c5dc; border-radius: 9px; color: #53627a; background: #f8faff; text-align: center; transition: background .15s, border-color .15s; }
+    #drop-zone strong, #drop-zone span { display: block; }
+    #drop-zone strong { color: #315fcb; }
+    #drop-zone span { margin-top: 4px; font-size: 12px; }
+    #drop-zone .drop-help { margin-top: 7px; color: #71809a; font-size: 12px; }
+    #drop-zone.dragging { border-color: #315fcb; background: #eaf0ff; }
+    dialog#pages-dialog { width: min(780px, calc(100vw - 32px)); max-width: none; max-height: min(82vh, 760px); padding: 0; border: 1px solid #cbd3df; border-radius: 10px; color: #172033; box-shadow: 0 16px 48px #17203355; }
+    dialog#pages-dialog::backdrop { background: #101a2b88; }
+    .pages-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 20px 12px; border-bottom: 1px solid #e3e8f0; }
+    .pages-dialog-head h2 { margin: 0 0 6px; font-size: 18px; }
+    .pages-dialog-head p, #pages-dialog-status { margin: 0; color: #68758b; font-size: 13px; line-height: 1.45; }
+    .dialog-close { padding: 6px 10px; color: #53627a; background: #eef2f8; }
+    .dialog-close:hover { background: #e2e8f2; }
+    #pages-dialog-status { padding: 10px 20px 0; }
+    #saved-pages-list { max-height: 58vh; overflow: auto; padding: 12px 20px 20px; }
+    .saved-page-row { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #edf0f5; }
+    .saved-page-row:last-child { border-bottom: 0; }
+    .saved-page-info { flex: 1; min-width: 0; }
+    .saved-page-title { color: #253650; font-weight: 600; overflow-wrap: anywhere; }
+    .saved-page-meta { margin-top: 4px; color: #68758b; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+    .saved-page-delete { flex: 0 0 auto; color: #a12a36; background: #fff0f1; }
+    .saved-page-delete:hover { color: #8a1d29; background: #ffe0e3; }
+    .saved-pages-empty { padding: 18px 0; color: #68758b; font-size: 13px; }
+    @media(max-width: 520px) { .saved-page-row { align-items: flex-start; } .saved-page-delete { padding: 7px 8px; } }
+    #viewer[hidden] { display: none; }
+    #viewer { margin-top: 16px; }
+    .viewer-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .viewer-toolbar strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .viewer-toolbar button { white-space: nowrap; }
+    #viewer-component { width: 100%; height: calc(100vh - 190px); min-height: 480px; border: 1px solid #dce2ec; border-radius: 8px; overflow: hidden; background: white; }
+    #viewer-component iframe { display: block; width: 100%; height: 100%; border: 0; }
+    #viewer-error { margin: 12px 0; padding: 12px; border-radius: 7px; color: #733b00; background: #fff4db; font-size: 13px; line-height: 1.5; }
+    #viewer-error[hidden] { display: none; }
+    #empty { padding: 32px 18px; color: #78859a; text-align: center; }
+    #toast { position: fixed; right: 20px; bottom: 20px; max-width: 390px; padding: 12px 16px; border-radius: 8px; color: white; background: #24334e; box-shadow: 0 5px 24px #17203333; }
+    #toast[hidden] { display: none; }
+    @media(max-width: 720px) { header { flex-wrap: wrap; gap: 6px 12px; } header img { width: 250px; height: 52px; } main { grid-template-columns: 1fr; } aside { border-right: 0; border-bottom: 1px solid #dce2ec; } article { padding: 18px; } .viewer-toolbar { flex-wrap: wrap; } }
+  </style>
+</head>
+<body>
+  <header><a id="home-link" href="/" aria-label="ArchiveWebShelf home"><img src="archive-shelf-logo.png" alt="ArchiveWebShelf" width="300" height="61"></a><span>Organize and browse archived sites here.</span></header>
+  <main>
+    <aside>
+      <h2>Add a folder or archive</h2>
+      <div class="field"><label for="groupPath">New folder name</label><input id="groupPath" type="text" placeholder="e.g. MTG, Sports, Instruments"></div>
+      <button id="addGroup">Create folder</button>
+      <p id="folder-hint" class="hint">A folder will be created at the top level. Use / in the name to create nested folders.</p>
+      <label class="file-label">Choose archive files<input id="files" type="file" accept=".wacz,.warc,.gz,.har,.cdx,.cdxj" multiple></label>
+      <div id="status" role="status"></div>
+      <p class="hint">Files are added to the folder you’re viewing. You can also drag them from Windows Explorer and drop them anywhere in the file area. Files stay on this computer.</p>
+    </aside>
+    <article id="workspace">
+      <div id="crumbs" aria-label="Folder path"></div>
+<div id="drop-zone" aria-label="Drop archive files here"><strong>Drop archive files here</strong><span id="drop-location">They’ll be added at the top level.</span><span class="drop-help">Drag archives onto a folder to move them. Use a folder’s Move button to move its whole contents.</span></div>
+      <div id="entries"></div>
+      <section id="viewer" hidden>
+        <div class="viewer-toolbar">
+          <button id="viewer-home" type="button" title="Return to All folders">⌂ Home</button>
+          <button id="viewer-nav-back" type="button" title="Return to the folder">← Back</button>
+          <button id="viewer-nav-forward" type="button" title="Go forward one archived page">Forward →</button>
+          <button id="viewer-refresh" type="button" title="Reload this archived page">↻ Refresh</button>
+          <button id="viewer-manage-pages" type="button" hidden>Manage saved pages</button>
+          <button id="viewer-back" type="button">← Back to folder</button>
+          <strong id="viewer-title"></strong>
+        </div>
+        <div id="viewer-error" role="status" hidden></div>
+        <div id="viewer-component"></div>
+      </section>
+    </article>
+  </main>
+  <dialog id="pages-dialog" aria-labelledby="pages-title">
+    <div class="pages-dialog-head">
+      <div><h2 id="pages-title">Manage saved pages</h2><p>Each row is one saved capture. Deleting it removes the page response from Archive Shelf’s copy; shared resources used by other captures are kept.</p></div>
+      <button id="pages-dialog-close" class="dialog-close" type="button" aria-label="Close">Close</button>
+    </div>
+    <div id="pages-dialog-status" role="status"></div>
+    <div id="saved-pages-list"></div>
+  </dialog>
+  <div id="toast" role="status" hidden></div>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let library = { groups: [], items: [] };
+    let currentPath = [];
+    let openItemId = null;
+    let replayState = '';
+    let libraryLoaded = false;
+    let toastTimer;
+
+    async function api(url, options = {}) {
+      let response;
+      try { response = await fetch(url, options); }
+      catch { throw new Error('Can’t reach Archive Shelf’s local server. Close the old server window, then start Archive Shelf with its updated launcher.'); }
+      let payload;
+      try { payload = await response.json(); }
+      catch { throw new Error('The old file server is still running. Close its black window, then start Archive Shelf with its updated launcher.'); }
+      if (!response.ok) throw new Error(payload.error || 'Something went wrong.');
+      return payload;
+    }
+    function normalized(path) { return String(path || '').split(/[\\/]/).map(s => s.trim()).filter(Boolean); }
+    function pathString(parts) { return parts.join(' / '); }
+    function resolveMoveDestination(value, baseParts = currentPath) {
+      const trimmed = String(value || '').trim();
+      if (!trimmed) return [];
+      let explicitRoot = false;
+      let pathText = trimmed;
+      const rootPrefix = pathText.match(/^all\s+folders\s*(?:\/|\\|>)\s*/i);
+      if (rootPrefix) { explicitRoot = true; pathText = pathText.slice(rootPrefix[0].length); }
+      else if (/^[\\/]/.test(pathText)) { explicitRoot = true; pathText = pathText.replace(/^[\\/]+/, ''); }
+      const typed = normalized(pathText);
+      if (!typed.length) return [];
+      const knownPaths = [...library.groups, ...library.items.map(item => item.folder || '')]
+        .map(path => normalized(String(path || '')))
+        .filter(parts => parts.length);
+      const findKnown = parts => {
+        const wanted = pathString(parts).toLocaleLowerCase();
+        const found = knownPaths.find(candidate => pathString(candidate).toLocaleLowerCase() === wanted);
+        return found ? [...found] : null;
+      };
+      if (explicitRoot) return findKnown(typed) || typed;
+      const base = normalized(pathString(baseParts));
+      const startsWithBase = base.length <= typed.length && base.every((part, index) => part.toLocaleLowerCase() === typed[index].toLocaleLowerCase());
+      if (startsWithBase) return findKnown(typed) || typed;
+      const relativePath = [...base, ...typed];
+      const relativeMatch = findKnown(relativePath);
+      if (relativeMatch) return relativeMatch;
+      const fullMatch = findKnown(typed);
+      if (fullMatch) return fullMatch;
+      return relativePath;
+    }
+    function cleanReplayState(value) {
+      if (typeof value !== 'string' || value.length > 12000) return '';
+      const incoming = new URLSearchParams(value.startsWith('#') ? value.slice(1) : value);
+      const result = new URLSearchParams();
+      for (const key of ['url', 'ts', 'query', 'view']) if (incoming.has(key)) result.set(key, incoming.get(key) || '');
+      return result.toString();
+    }
+    function readRoute() {
+      const params = new URLSearchParams(location.search);
+      const archive = params.get('archive') || '';
+      const validArchiveId = /^[a-f0-9]{32}$/i.test(archive);
+      return {
+        folder: normalized(params.get('folder') || ''),
+        archiveId: validArchiveId ? archive.toLowerCase() : null,
+        replayState: validArchiveId ? cleanReplayState(params.get('replay') || '') : ''
+      };
+    }
+    function writeRoute(mode = 'push') {
+      const url = new URL(location.href);
+      const folder = pathString(currentPath);
+      if (folder) url.searchParams.set('folder', folder); else url.searchParams.delete('folder');
+      if (openItemId) url.searchParams.set('archive', openItemId); else url.searchParams.delete('archive');
+      if (openItemId && replayState) url.searchParams.set('replay', replayState); else url.searchParams.delete('replay');
+      const method = mode === 'replace' ? 'replaceState' : 'pushState';
+      if (mode === 'push' && url.href === location.href) return;
+      history[method]({ archiveShelf: true, folder: [...currentPath], archiveId: openItemId, replayState }, '', url);
+    }
+    function navigate(folder, archiveId = null) {
+      currentPath = [...folder];
+      openItemId = archiveId;
+      replayState = '';
+      writeRoute('push');
+      render();
+    }
+    function isInside(candidate, parent) { return candidate === parent || candidate.startsWith(parent + ' / '); }
+    function folderPathExists(parts) {
+      if (!parts.length) return true;
+      const candidate = pathString(parts);
+      if (library.groups.some(group => pathString(normalized(group)) === candidate)) return true;
+      return library.items.some(item => {
+        const folder = pathString(normalized(item.folder || ''));
+        return folder === candidate || isInside(folder, candidate);
+      });
+    }
+    function repairCurrentPath() {
+      while (currentPath.length && !folderPathExists(currentPath)) currentPath.pop();
+    }
+    function notify(message) {
+      $('toast').textContent = message; $('toast').hidden = false;
+      clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').hidden = true, 5000);
+    }
+    function escapeText(value) { return String(value).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+
+    async function refresh() {
+      library = await api('/api/state');
+      libraryLoaded = true;
+      render();
+      $('status').textContent = 'Connected to Archive Shelf.';
+    }
+    async function moveArchive(id, folder) {
+      const item = library.items.find(entry => entry.id === id);
+      if (!item || pathString(normalized(item.folder || '')) === pathString(folder)) return;
+      try {
+        await api('/api/move', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id, folder:pathString(folder)})});
+        await refresh();
+        notify(folder.length ? `Moved “${item.name}” to ${pathString(folder)}.` : `Moved “${item.name}” to the top level.`);
+      } catch (error) { notify(error.message); }
+    }
+    function enableArchiveDrop(target, destination) {
+      const getDestination = typeof destination === 'function' ? destination : () => destination;
+      target.addEventListener('dragover', event => {
+        if (!event.dataTransfer || ![...event.dataTransfer.types].includes('application/x-archive-shelf-item')) return;
+        event.preventDefault(); event.dataTransfer.dropEffect = 'move'; target.classList.add('drop-target');
+      });
+      target.addEventListener('dragleave', event => {
+        if (!target.contains(event.relatedTarget)) target.classList.remove('drop-target');
+      });
+      target.addEventListener('drop', async event => {
+        const id = event.dataTransfer?.getData('application/x-archive-shelf-item');
+        if (!id) return;
+        event.preventDefault(); event.stopPropagation(); target.classList.remove('drop-target');
+        await moveArchive(id, getDestination());
+      });
+    }
+    function replayViewerUrl(item) {
+      const viewer = new URL(`/replay-viewer.html`, `${location.protocol}//replay.localhost:${location.port}`);
+      viewer.searchParams.set('id', item.id);
+      viewer.searchParams.set('name', item.name);
+      viewer.searchParams.set('parentOrigin', location.origin);
+      if (replayState) viewer.searchParams.set('replay', replayState);
+      if (replayState) viewer.hash = replayState;
+      return viewer.href;
+    }
+    function mountArchive(item) {
+      const mount = $('viewer-component');
+      const replay = document.createElement('iframe');
+      replay.src = replayViewerUrl(item);
+      replay.title = `Archived site: ${item.name}`;
+      replay.referrerPolicy = 'no-referrer';
+      replay.allow = 'fullscreen';
+      replay.allowFullscreen = true;
+      replay.loading = 'eager';
+      mount.replaceChildren(replay);
+    }
+    function displayCaptureTime(value) {
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? String(value || 'Time unavailable') : date.toLocaleString();
+    }
+    async function loadSavedPages(archiveId) {
+      const list = $('saved-pages-list');
+      const status = $('pages-dialog-status');
+      list.replaceChildren();
+      status.textContent = 'Loading saved pages…';
+      try {
+        const result = await api('/api/archive-pages?id=' + encodeURIComponent(archiveId));
+        if (archiveId !== openItemId) return;
+        const pages = (result.pages || []).sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime());
+        status.textContent = pages.length + ' saved capture' + (pages.length === 1 ? '' : 's') + '.';
+        if (!pages.length) {
+          const empty = document.createElement('div');
+          empty.className = 'saved-pages-empty';
+          empty.textContent = 'There are no saved pages in this archive.';
+          list.append(empty);
+          return;
+        }
+        for (const page of pages) {
+          const row = document.createElement('div');
+          row.className = 'saved-page-row';
+          const info = document.createElement('div');
+          info.className = 'saved-page-info';
+          const title = document.createElement('div');
+          title.className = 'saved-page-title';
+          title.textContent = page.title || page.url || 'Untitled page';
+          const meta = document.createElement('div');
+          meta.className = 'saved-page-meta';
+          meta.textContent = displayCaptureTime(page.ts) + ' · ' + page.url;
+          info.append(title, meta);
+          const remove = document.createElement('button');
+          remove.className = 'saved-page-delete';
+          remove.type = 'button';
+          remove.textContent = 'Delete';
+          remove.title = 'Delete this saved page capture from Archive Shelf';
+          remove.onclick = async () => {
+            const item = library.items.find(entry => entry.id === archiveId);
+            const archiveName = item ? item.name : 'this archive';
+            if (!confirm('Delete “' + (page.title || page.url) + '” captured ' + displayCaptureTime(page.ts) + ' from “' + archiveName + '”? This removes it from Archive Shelf’s saved copy; the original WACZ file is unchanged.')) return;
+            remove.disabled = true;
+            remove.textContent = 'Deleting…';
+            status.textContent = 'Updating the archive… Larger WACZ files can take a little while.';
+            try {
+              await api('/api/archive-page?id=' + encodeURIComponent(archiveId) + '&page=' + encodeURIComponent(page.key), {method:'DELETE'});
+              replayState = '';
+              delete $('viewer-component').dataset.archiveId;
+              writeRoute('replace');
+              await refresh();
+              await loadSavedPages(archiveId);
+              notify('Saved page deleted from this archive.');
+            } catch (error) {
+              notify(error.message);
+              await loadSavedPages(archiveId);
+            }
+          };
+          row.append(info, remove);
+          list.append(row);
+        }
+      } catch (error) {
+        status.textContent = error.message;
+      }
+    }
+    async function openSavedPages() {
+      if (!openItemId) return;
+      $('pages-dialog').showModal();
+      await loadSavedPages(openItemId);
+    }
+    function render() {
+      const oldFolder = pathString(currentPath);
+      const oldArchiveId = openItemId;
+      const oldReplayState = replayState;
+      repairCurrentPath();
+      const openItem = library.items.find(item => item.id === openItemId);
+      if (openItemId && !openItem) { openItemId = null; replayState = ''; }
+      if (!openItemId) replayState = '';
+      if (oldFolder !== pathString(currentPath) || oldArchiveId !== openItemId || oldReplayState !== replayState) writeRoute('replace');
+      const here = pathString(currentPath);
+      $('folder-hint').textContent = here
+        ? `A new folder will be created inside ${here}. Enter a child name, or a full path starting with ${here}.`
+        : 'A folder will be created at the top level. Use / in the name to create nested folders.';
+      $('groupPath').placeholder = currentPath.length ? 'e.g. Avatar the Last Airbender' : 'e.g. MTG, Sports, Instruments';
+      $('drop-location').textContent = here ? `They’ll be added to ${here}.` : 'They’ll be added at the top level.';
+      $('drop-zone').hidden = Boolean(openItemId);
+      $('entries').hidden = Boolean(openItemId);
+      $('viewer').hidden = !openItemId;
+      if (openItemId && openItem) {
+        $('viewer-title').textContent = openItem.name;
+        $('viewer-manage-pages').hidden = !openItem.name.toLowerCase().endsWith('.wacz');
+        $('viewer-error').hidden = true;
+        const mount = $('viewer-component');
+        if (mount.dataset.archiveId !== openItem.id || mount.dataset.replayState !== replayState || !mount.querySelector('iframe')) {
+          mount.dataset.archiveId = openItem.id;
+          mount.dataset.replayState = replayState;
+          mountArchive(openItem);
+        }
+      } else {
+        $('viewer-component').replaceChildren();
+        delete $('viewer-component').dataset.archiveId;
+      }
+      const crumbs = $('crumbs'); crumbs.replaceChildren();
+      const up = document.createElement('button'); up.textContent = '← Parent folder'; up.disabled = currentPath.length === 0;
+      up.title = currentPath.length ? 'Go up one folder' : 'You are already at the top level';
+      up.onclick = () => navigate(currentPath.slice(0, -1));
+      if (currentPath.length) enableArchiveDrop(up, currentPath.slice(0, -1));
+      crumbs.append(up);
+      const root = document.createElement('button'); root.textContent = 'All folders'; root.onclick = () => navigate([]);
+      enableArchiveDrop(root, []);
+      crumbs.append(root);
+      currentPath.forEach((part, index) => {
+        crumbs.append(document.createTextNode('›'));
+        const current = document.createElement(index === currentPath.length - 1 ? 'strong' : 'button');
+        current.textContent = part;
+        if (current.tagName === 'BUTTON') current.onclick = () => navigate(currentPath.slice(0, index + 1));
+        crumbs.append(current);
+      });
+
+      const parentPath = pathString(currentPath);
+      const folders = new Set();
+      for (const group of library.groups) {
+        const parts = normalized(group);
+        if (parts.length > currentPath.length && currentPath.every((part, i) => parts[i] === part)) folders.add(parts[currentPath.length]);
+      }
+      for (const item of library.items) {
+        const parts = normalized(item.folder || '');
+        if (parts.length > currentPath.length && currentPath.every((part, i) => parts[i] === part)) folders.add(parts[currentPath.length]);
+      }
+
+      const host = $('entries'); host.replaceChildren();
+      for (const folderName of [...folders].sort((a,b) => a.localeCompare(b))) {
+        const entry = document.createElement('div'); entry.className = 'entry';
+        const main = document.createElement('div'); main.className = 'entry-main';
+        const open = document.createElement('button'); open.className = 'entry-title folder-title'; open.textContent = '📁  ' + folderName; open.onclick = () => navigate([...currentPath, folderName]);
+        const fullPath = pathString([...currentPath, folderName]);
+        enableArchiveDrop(entry, normalized(fullPath));
+        const count = library.items.filter(item => isInside(item.folder || '', fullPath)).length;
+        const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.textContent = count ? `${count} archive${count === 1 ? '' : 's'} inside` : 'Folder';
+        main.append(open, meta);
+        const del = document.createElement('button'); del.className = 'delete'; del.textContent = 'Delete folder'; del.title = `Delete folder ${fullPath}`;
+        del.onclick = async () => {
+          const contained = library.items.filter(item => isInside(item.folder || '', fullPath)).length;
+          const note = contained ? ` Any archives inside will move up to ${parentPath || 'All folders'}; the archive files themselves will stay.` : '';
+          if (!confirm(`Delete the folder “${fullPath}”?${note}`)) return;
+          try { await api('/api/group?path=' + encodeURIComponent(fullPath), { method: 'DELETE' }); await refresh(); notify('Folder deleted.'); }
+          catch (error) { notify(error.message); }
+        };
+        const move = document.createElement('button'); move.className = 'move'; move.textContent = 'Move'; move.title = `Move ${fullPath} and everything inside it`;
+        move.onclick = async () => {
+          const context = pathString(currentPath) || 'All folders';
+          const destinationParent = prompt('Move folder into which existing folder? A short name is inside "' + context + '". Use "All folders / Name" for a top-level folder. Leave blank for the top level.');
+          if (destinationParent === null) return;
+          const canonicalParent = pathString(resolveMoveDestination(destinationParent, currentPath));
+          try {
+            const result = await api('/api/move-group', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:fullPath, parent:canonicalParent})});
+            await refresh(); notify(`Moved “${folderName}” to ${result.folder || 'the top level'}.`);
+          } catch (error) { notify(error.message); }
+        };        const rename = document.createElement('button'); rename.className = 'move'; rename.textContent = 'Rename'; rename.title = `Rename ${fullPath} and everything inside it`;
+        rename.onclick = async () => {
+          const newName = prompt('Rename folder');
+          if (newName === null || !newName.trim() || newName.trim() === folderName) return;
+          try {
+            const result = await api('/api/rename-group', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:fullPath, name:newName.trim()})});
+            await refresh(); notify(`Renamed folder to ${result.folder}.`);
+          } catch (error) { notify(error.message); }
+        };
+        entry.append(main, move, rename, del); host.append(entry);
+      }
+
+      const items = library.items.filter(item => pathString(normalized(item.folder || '')) === parentPath).sort((a,b) => a.name.localeCompare(b.name));
+      for (const item of items) {
+        const entry = document.createElement('div'); entry.className = 'entry archive-entry'; entry.draggable = true;
+        entry.addEventListener('dragstart', event => {
+          event.dataTransfer?.setData('application/x-archive-shelf-item', item.id);
+          if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move';
+        });
+        entry.addEventListener('dragend', () => document.querySelectorAll('.drop-target').forEach(target => target.classList.remove('drop-target')));
+        const main = document.createElement('div'); main.className = 'entry-main';
+        const open = document.createElement('button'); open.className = 'entry-title'; open.textContent = '📄  ' + item.name; open.title = 'Open archive here in Archive Shelf'; open.onclick = () => { $('status').textContent = 'Archive opened inside Archive Shelf.'; navigate(currentPath, item.id); };
+        const meta = document.createElement('div'); meta.className = 'entry-meta'; meta.textContent = item.size ? `${(item.size / 1024 / 1024).toFixed(1)} MB · View archive here` : 'View archive here';
+        main.append(open, meta);
+        const move = document.createElement('button'); move.className = 'move'; move.textContent = 'Move'; move.title = 'Move this archive to another folder';
+        move.onclick = async () => {
+          const context = pathString(currentPath) || 'All folders';
+          const destination = prompt('Move archive into which folder? A short name is inside "' + context + '". Use "All folders / Name" for a top-level folder. Leave blank for the top level.', item.folder || '');
+          if (destination === null) return;
+          const destinationFolder = resolveMoveDestination(destination, currentPath);
+          const destinationPath = pathString(destinationFolder);
+          try {
+            await api('/api/move', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({id:item.id, folder:destinationPath})});
+            await refresh(); notify(destinationPath ? `Archive moved to ${destinationPath}.` : 'Archive moved to the top level.');
+          } catch (error) { notify(error.message); }
+        };
+        const del = document.createElement('button'); del.className = 'delete'; del.textContent = 'Remove'; del.title = 'Remove archive and its organizer copy';
+        del.onclick = async () => {
+          if (!confirm(`Remove “${item.name}” from Archive Shelf and delete the organizer’s local copy? Your original file will not be changed.`)) return;
+          try { await api('/api/archive?id=' + encodeURIComponent(item.id), {method:'DELETE'}); await refresh(); notify('Archive removed from the organizer.'); }
+          catch (error) { notify(error.message); }
+        };
+        entry.append(main, move, del); host.append(entry);
+      }
+      if (!host.children.length) {
+        const empty = document.createElement('div'); empty.id = 'empty';
+        empty.textContent = currentPath.length ? 'This folder is empty. Add an archive here or create a folder inside it.' : 'No folders yet. Create one on the left, then add your archive files.';
+        host.append(empty);
+      }
+    }
+
+    $('home-link').addEventListener('click', event => {
+      event.preventDefault();
+      window.location.assign('/');
+    });
+    $('viewer-home').onclick = () => navigate([]);
+    function navigateReplay(direction) {
+      const frame = $('viewer-component').querySelector('iframe');
+      if (!frame?.contentWindow || !openItemId) return false;
+      const expectedOrigin = `${location.protocol}//replay.localhost${location.port ? ':' + location.port : ''}`;
+      frame.contentWindow.postMessage({ type: 'archivewebshelf-replay-navigation', id: openItemId, direction }, expectedOrigin);
+      return true;
+    }
+    $('viewer-nav-back').onclick = () => navigate(currentPath);
+    $('viewer-nav-forward').onclick = () => { if (!navigateReplay('forward')) history.forward(); };
+    $('viewer-refresh').onclick = () => {
+      const item = library.items.find(entry => entry.id === openItemId);
+      if (item) mountArchive(item);
+    };
+    $('viewer-back').onclick = () => navigate(currentPath);
+    $('viewer-manage-pages').onclick = openSavedPages;
+    $('pages-dialog-close').onclick = () => $('pages-dialog').close();
+
+    function applyRouteFromLocation() {
+      const route = readRoute();
+      currentPath = route.folder;
+      openItemId = route.archiveId;
+      replayState = route.replayState;
+      if (libraryLoaded) render();
+    }
+    window.addEventListener('popstate', applyRouteFromLocation);
+    window.addEventListener('message', event => {
+      const mount = $('viewer-component');
+      const frame = mount.querySelector('iframe');
+      const expectedOrigin = `${location.protocol}//replay.localhost${location.port ? ':' + location.port : ''}`;
+      const data = event.data;
+      if (!frame || event.source !== frame.contentWindow || event.origin !== expectedOrigin ||
+          !data || data.type !== 'archivewebshelf-replay-state' || data.id !== openItemId) return;
+      const nextState = cleanReplayState(data.state || '');
+      if (nextState === replayState) return;
+      replayState = nextState;
+      mount.dataset.replayState = replayState;
+      // ReplayWeb.page keeps its own navigation inside the iframe. Mirror each
+      // changed page into the Shelf history so browser Back/Forward and the
+      // Shelf's page controls can restore the same archived location.
+      writeRoute('push');
+    });
+
+    $('addGroup').onclick = async () => {
+      const entered = normalized($('groupPath').value);
+      const alreadyStartsAtCurrent = currentPath.length <= entered.length && currentPath.every((part, index) => part.toLocaleLowerCase() === entered[index].toLocaleLowerCase());
+      const value = pathString(alreadyStartsAtCurrent ? entered : [...currentPath, ...entered]); if (!value) return;
+      try { await api('/api/group', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({path:value})}); $('groupPath').value = ''; await refresh(); notify('Folder created.'); }
+      catch (error) { notify(error.message); }
+    };
+    $('groupPath').addEventListener('keydown', event => { if (event.key === 'Enter') $('addGroup').click(); });
+    async function addFiles(fileList) {
+      const files = [...fileList]; const folder = pathString(currentPath);
+      if (!files.length) return;
+      let added = 0;
+      for (const file of files) {
+        $('status').textContent = `Adding ${file.name}…`;
+        try {
+          await api('/api/import?name=' + encodeURIComponent(file.name) + '&folder=' + encodeURIComponent(folder), {method:'POST', headers:{'Content-Type':'application/octet-stream'}, body:file});
+          added++;
+        } catch (error) { notify(`${file.name}: ${error.message}`); }
+      }
+      $('status').textContent = added ? `${added} archive${added === 1 ? '' : 's'} added to ${folder || 'the top level'}.` : 'No archives were added.';
+      await refresh();
+    }
+    $('files').onchange = async event => { const files = [...event.target.files]; event.target.value = ''; await addFiles(files); };
+
+    const workspace = $('workspace');
+    const dropZone = $('drop-zone');
+    let dragDepth = 0;
+    const isFileDrag = event => event.dataTransfer && [...event.dataTransfer.types].includes('Files');
+    const isArchiveItemDrag = event => event.dataTransfer && [...event.dataTransfer.types].includes('application/x-archive-shelf-item');
+    window.addEventListener('dragover', event => { if (isFileDrag(event)) event.preventDefault(); });
+    window.addEventListener('drop', event => { if (isFileDrag(event)) event.preventDefault(); });
+    workspace.addEventListener('dragenter', event => {
+      if (!isFileDrag(event)) return;
+      event.preventDefault(); dragDepth++; dropZone.classList.add('dragging');
+    });
+    workspace.addEventListener('dragover', event => {
+      if (!isFileDrag(event)) return;
+      event.preventDefault(); event.dataTransfer.dropEffect = 'copy';
+    });
+    workspace.addEventListener('dragleave', event => {
+      if (!isFileDrag(event)) return;
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (!dragDepth) dropZone.classList.remove('dragging');
+    });
+    workspace.addEventListener('drop', async event => {
+      if (!isFileDrag(event)) return;
+      event.preventDefault(); dragDepth = 0; dropZone.classList.remove('dragging');
+      await addFiles(event.dataTransfer.files);
+    });
+    enableArchiveDrop(dropZone, () => [...currentPath]);
+
+    async function migrateOldBrowserFiles() {
+      const completeKey = 'archive-shelf-migrated-v3';
+      if (localStorage.getItem(completeKey)) return;
+      if (localStorage.getItem('archive-shelf-migrated-v2')) {
+        localStorage.setItem(completeKey, 'yes');
+        return;
+      }
+      let oldMeta;
+      try { oldMeta = JSON.parse(localStorage.getItem('archive-shelf-meta') || '{"groups":[],"items":[]}'); }
+      catch { oldMeta = {groups:[], items:[]}; }
+      if (!oldMeta || !Array.isArray(oldMeta.groups) || !Array.isArray(oldMeta.items)) oldMeta = {groups:[], items:[]};
+      if (!oldMeta.groups.length && !oldMeta.items.length) { localStorage.setItem(completeKey, 'yes'); return; }
+
+      const request = indexedDB.open('archive-shelf', 1);
+      const oldDb = await new Promise((resolve, reject) => {
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        request.onupgradeneeded = () => resolve(request.result);
+      });
+      if (!oldDb.objectStoreNames.contains('files')) { oldDb.close(); return; }
+      const oldFile = id => new Promise((resolve,reject) => {
+        const req = oldDb.transaction('files').objectStore('files').get(id);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      try {
+        for (const group of oldMeta.groups) {
+          await api('/api/group', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:group})});
+        }
+        let moved = 0;
+        for (const item of oldMeta.items) {
+          const migrationId = String(item.id || item.name || '');
+          const itemKey = `archive-shelf-migrated-v3:${migrationId}`;
+          if (localStorage.getItem(itemKey)) continue;
+          const file = await oldFile(item.id);
+          if (!file) { localStorage.setItem(itemKey, 'missing'); continue; }
+          const original = file.name || item.name || 'archive.wacz';
+          const query = new URLSearchParams({name: original, folder: item.path || '', migrationId});
+          await api('/api/import?' + query, {method:'POST',headers:{'Content-Type':'application/octet-stream'},body:file});
+          localStorage.setItem(itemKey, 'yes');
+          moved++;
+        }
+        localStorage.setItem(completeKey, 'yes');
+        if (moved) notify(`${moved} existing archive${moved === 1 ? '' : 's'} moved into the desktop-app organizer.`);
+      } finally { oldDb.close(); }
+    }
+
+    const initialRoute = readRoute();
+    currentPath = initialRoute.folder;
+    openItemId = initialRoute.archiveId;
+    replayState = initialRoute.replayState;
+    $('status').textContent = 'Connecting to Archive Shelf…';
+    refresh().then(migrateOldBrowserFiles).then(refresh).catch(error => { $('status').textContent = error.message; });
+  </script>
+</body>
+</html>

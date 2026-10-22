@@ -1,0 +1,36 @@
+ARCHIVEWEBSHELF FOLDER CONTENTS
+===============================
+
+This is the public Archive Shelf 1.0.0 starter copy. It contains the app, the ready-to-load recorder extension, and the bundled replay viewer. It does not include personal WACZ archives or an organizer catalog.
+
+START AND USE
+- README.md: GitHub-friendly quick start and privacy notes.
+- Archive Shelf Python Path Guide.pdf: explains the Python path used by the Windows launchers.
+- Start Archive Shelf.bat: starts the local organizer and server.
+- index.html: organizer and archive-viewer interface.
+- organizer_server.py: local server for the organizer, imports, saved archives, and replay routing.
+- archive-shelf-logo.png and archive-shelf-logo.svg: app logo files.
+- Archive Shelf Beginner Guide.pdf: beginner instructions and diagrams.
+- ArchiveWebShelf Connection and Safety Guide.pdf: explains local connections and safety limits.
+- Archive Shelf Source Code.txt: copyable source snapshots for the main app and extension integration.
+- BUGS.txt: known issues and next-version improvement notes.
+
+USER DATA
+- library/: archive storage created by the app. It is empty in this public starter copy.
+- archive-shelf-data.json: folder and archive catalog created as the user organizes files.
+Keep WACZ archives, the library folder, and the catalog private. The root .gitignore excludes the collection data. GitHub does not store empty folders; the app recreates library when it starts.
+
+BROWSER EXTENSIONS
+- browser-extension\Archive Shelf Recorder\: combined recorder and WACZ importer, ready to load unpacked in Chrome or Brave. Its extension manifest is version 1.0.0.
+- browser-extension\Legacy WACZ Importer\: older, optional import-only extension.
+- browser-extension\archiveweb-page-source\: readable source project for the recorder. Its package metadata is upstream ArchiveWeb.page version 0.17.5. The build notes explain how this relates to the Archive Shelf 1.0.0 release.
+
+REPLAY VIEWER AND UPDATES
+- replay\: bundled ReplayWeb.page files used to open WACZ archives locally. License information is in replay\LICENSE.txt.
+- replay-viewer.html and replay-viewer.js: connect the organizer interface to the bundled reader.
+- Check ReplayWeb.page Updates.bat and check_replaywebpage_update.py: check for and install updates to the replay viewer only.
+
+SOURCE BUILD AND GITHUB HYGIENE
+The archiveweb-page-source folder keeps its source, lockfile, build scripts, and licenses. Installed packages, package caches, generated dist output, and build logs are omitted. The root .gitignore excludes those artifacts and private archive data.
+
+The recorder source includes code adapted from Webrecorder ArchiveWeb.page under AGPL-3.0-or-later; see browser-extension\archiveweb-page-source\LICENSE.md. Archive Shelf's own app code has no separate license grant in this release. The bundled replay viewer has its own license in replay\LICENSE.txt.

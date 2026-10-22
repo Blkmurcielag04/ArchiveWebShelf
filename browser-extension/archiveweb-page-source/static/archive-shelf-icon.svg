@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title">
+  <title id="title">ArchiveWebShelf</title>
+  <rect width="128" height="128" rx="25" fill="#173153"/>
+  <g fill="none" stroke="#a66b35" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M7 116 36 30M36 116 65 30" stroke-width="7"/>
+    <path d="M15 93h29M22 70h29M30 47h29" stroke-width="6"/>
+  </g>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="64" y="29" width="57" height="70" rx="7" fill="#24436f" stroke="#ffffff" stroke-width="6"/>
+    <path d="M73 87h39" stroke="#89a9d8" stroke-width="4"/>
+  </g>
+</svg>

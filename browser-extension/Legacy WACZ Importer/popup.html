@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Save to ArchiveWebShelf</title>
+  <style>
+    :root { font-family: "Segoe UI", Arial, sans-serif; color: #172033; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { width: 350px; margin: 0; padding: 16px; }
+    h1 { margin: 0 0 6px; font-size: 18px; }
+    p { margin: 0 0 14px; color: #5f6d82; font-size: 12px; line-height: 1.5; }
+    label { display: block; margin: 13px 0 5px; font-size: 12px; font-weight: 600; }
+    select, input[type=file] { width: 100%; font: inherit; font-size: 13px; }
+    select { padding: 9px; border: 1px solid #cbd3df; border-radius: 6px; background: white; }
+    input[type=file] { padding: 8px; border: 1px solid #cbd3df; border-radius: 6px; background: white; }
+    button { width: 100%; margin-top: 14px; padding: 10px 12px; border: 0; border-radius: 6px; color: white; background: #315fcb; font: inherit; cursor: pointer; }
+    button:hover:not(:disabled) { background: #244da9; }
+    button:disabled { opacity: .55; cursor: default; }
+    #refresh { width: auto; margin: 8px 0 0; padding: 5px 0; color: #315fcb; background: transparent; font-size: 12px; }
+    #status { min-height: 20px; margin: 12px 0 0; color: #53627a; font-size: 12px; }
+    #status.error { color: #a12a36; }
+    .note { margin: 12px 0 0; padding-top: 10px; border-top: 1px solid #dce2ec; }
+  </style>
+</head>
+<body>
+  <h1>Legacy WACZ Importer</h1>
+  <p>Use this only for a WACZ file that was already exported by another tool.</p>
+
+  <label for="folder">Save in</label>
+  <select id="folder" disabled>
+    <option value="">All folders (top level)</option>
+  </select>
+  <button id="refresh" type="button">Refresh folder list</button>
+
+  <label for="archive">Archive file</label>
+  <input id="archive" type="file" accept=".wacz,.warc,.warc.gz,.har,.cdx,.cdxj">
+  <button id="save" type="button" disabled>Add archive to ArchiveWebShelf</button>
+  <div id="status" role="status">Looking for ArchiveWebShelf…</div>
+  <p class="note">The ArchiveWebShelf Recorder extension can capture and file new archives in one step.</p>
+  <script src="popup.js"></script>
+</body>
+</html>

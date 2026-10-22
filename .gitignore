@@ -1,0 +1,23 @@
+# User archive collection: keep private and out of public commits.
+/archive-shelf-data.json
+/library/
+*.wacz
+*.warc
+*.warc.gz
+
+# Python and local runtime artifacts.
+__pycache__/
+*.py[cod]
+/tmp/
+/backups/
+.DS_Store
+Thumbs.db
+
+# Recorder source build artifacts and dependency caches.
+/browser-extension/archiveweb-page-source/node_modules/
+/browser-extension/archiveweb-page-source/dist/
+/browser-extension/archiveweb-page-source/.yarn/cache/
+/browser-extension/archiveweb-page-source/.yarn/global/cache/
+/browser-extension/archiveweb-page-source/.yarn/install-state.gz
+/browser-extension/archiveweb-page-source/.yarn-cache/
+/browser-extension/archiveweb-page-source/build-log.txt

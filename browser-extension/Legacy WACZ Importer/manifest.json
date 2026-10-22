@@ -1,0 +1,25 @@
+{
+  "manifest_version": 3,
+  "name": "ArchiveWebShelf Importer (Legacy)",
+  "version": "1.0.0",
+  "description": "Legacy helper for filing a WACZ exported elsewhere. Use ArchiveWebShelf Recorder to capture and file in one step.",
+  "action": {
+    "default_title": "Save archive to ArchiveWebShelf",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "archive-shelf-icon-16.png",
+      "32": "archive-shelf-icon-32.png",
+      "48": "archive-shelf-icon-48.png"
+    }
+  },
+  "icons": {
+    "16": "archive-shelf-icon-16.png",
+    "32": "archive-shelf-icon-32.png",
+    "48": "archive-shelf-icon-48.png",
+    "128": "archive-shelf-icon-128.png"
+  },
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ]
+}

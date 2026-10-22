@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ArchiveWebShelf Recorder</title>
+  <style>
+    :root { font-family: "Segoe UI", Arial, sans-serif; color: #172033; background: #f4f6fa; }
+    * { box-sizing: border-box; }
+    body { width: 380px; margin: 0; padding: 16px; }
+    .brand { display: block; width: 248px; height: 52px; object-fit: contain; margin: 0 auto 12px; border-radius: 8px; background: #173153; }
+    p { margin: 0 0 12px; color: #5f6d82; font-size: 12px; line-height: 1.5; }
+    .field-label { display: block; margin: 12px 0 5px; font-size: 12px; font-weight: 600; }
+    .folder-current { padding: 9px 10px; border: 1px solid #cbd3df; border-radius: 6px; background: white; font-size: 13px; overflow-wrap: anywhere; }
+    button { border: 0; border-radius: 6px; color: white; background: #315fcb; font: inherit; cursor: pointer; }
+    button:hover:not(:disabled) { background: #244da9; }
+    button:disabled { cursor: default; opacity: .55; }
+    .secondary { width: 100%; margin-top: 7px; padding: 8px 10px; color: #315fcb; background: #e9effc; font-size: 12px; }
+    .secondary:hover:not(:disabled) { background: #dce6fa; }
+    #page-check { margin-top: 9px; padding: 9px 10px; border: 1px solid #dce2ec; border-radius: 6px; background: white; color: #53627a; font-size: 12px; line-height: 1.45; }
+    #page-check:empty { display: none; }
+    #page-check a { display: block; margin-top: 5px; color: #315fcb; overflow-wrap: anywhere; }
+    #page-check .page-check-match { margin-top: 6px; padding-top: 6px; border-top: 1px solid #edf0f5; }
+    #record { width: 100%; margin-top: 15px; padding: 11px 12px; font-size: 15px; }
+    #status { min-height: 20px; margin: 11px 0 0; color: #53627a; font-size: 12px; }
+    #status.error { color: #a12a36; }
+    #capture-note { margin-top: 12px; padding-top: 10px; border-top: 1px solid #dce2ec; }
+    #folder-dialog[hidden] { display: none; }
+    #folder-dialog { position: fixed; inset: 0; z-index: 5; display: flex; flex-direction: column; padding: 15px; background: #f4f6fa; }
+    .dialog-head { display: flex; align-items: center; gap: 10px; }
+    .dialog-head strong { flex: 1; }
+    #close-folders { padding: 5px 9px; background: #68758b; }
+    #folder-crumbs { display: flex; flex-wrap: wrap; gap: 4px; margin: 12px 0; color: #68758b; font-size: 12px; }
+    #folder-crumbs button { padding: 3px 5px; color: #315fcb; background: transparent; }
+    #folder-list { flex: 1; overflow: auto; border: 1px solid #dce2ec; border-radius: 7px; background: white; }
+    .folder-option, .folder-option:hover, .folder-option:focus, .folder-option:active { appearance: none; display: flex; align-items: center; gap: 9px; width: 100%; padding: 10px; border: 0; border-bottom: 1px solid #edf0f5; border-radius: 0; color: #244da9 !important; background: white !important; text-align: left; -webkit-tap-highlight-color: transparent; }
+    .folder-option:focus-visible { outline: 2px solid #315fcb; outline-offset: -2px; }
+    .folder-icon, .folder-chevron { flex: 0 0 auto; }
+    .folder-name { flex: 1; color: #244da9 !important; background: transparent !important; }
+    .folder-empty { padding: 12px; color: #68758b; font-size: 12px; }
+    #use-folder { width: 100%; margin-top: 10px; padding: 10px; }
+    #copy-diagnostics { display: block; margin: 8px auto 0; padding: 4px 8px; color: #68758b; background: transparent; font-size: 11px; }
+    #import-panel { margin-top: 9px; padding-top: 8px; border-top: 1px solid #dce2ec; color: #53627a; font-size: 12px; }
+    #import-panel summary { cursor: pointer; color: #315fcb; }
+    #import-file { display: block; width: 100%; margin-top: 8px; padding: 6px; border: 1px solid #cbd3df; border-radius: 6px; background: white; font-size: 12px; }
+    #import-archive { width: 100%; margin-top: 7px; padding: 8px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <img class="brand" src="archive-shelf-logo.png" alt="ArchiveWebShelf">
+  <p>Record this page and save the WACZ straight into your Shelf.</p>
+
+  <span class="field-label">Save in</span>
+  <div id="selected-folder" class="folder-current">Looking for Archive Shelf…</div>
+  <div id="page-check" role="status" aria-live="polite"></div>
+  <button id="choose-folder" class="secondary" type="button" disabled>Choose folder</button>
+  <button id="refresh" class="secondary" type="button">Refresh folders</button>
+
+  <button id="record" type="button" disabled>Start Archiving</button>
+  <div id="status" role="status">Start Archive Shelf, then refresh the folder list.</div>
+  <button id="copy-diagnostics" type="button">Copy diagnostics</button>
+  <details id="import-panel">
+    <summary>Import an existing WACZ file</summary>
+    <p style="margin-top: 7px;">For an archive you already exported with another tool. It will go into the selected folder above.</p>
+    <input id="import-file" type="file" accept=".wacz,.warc,.warc.gz,.har,.cdx,.cdxj">
+    <button id="import-archive" type="button" disabled>Import existing archive</button>
+  </details>
+  <p id="capture-note">The current page is recorded first. Browse normally and click the pages or media you want to capture; the recorder will not visit links on its own. Stop and save when you are done.</p>
+
+  <div id="folder-dialog" hidden>
+    <div class="dialog-head"><strong>Choose a Shelf folder</strong><button id="close-folders" type="button">Close</button></div>
+    <div id="folder-crumbs"></div>
+    <div id="folder-list"></div>
+    <button id="use-folder" type="button">Save in this folder</button>
+  </div>
+  <script src="shelf-popup.js"></script>
+  <script src="shelf-page-check.js"></script>
+  <script src="shelf-diagnostics.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,20 @@
+ARCHIVE SHELF RECORDER - BUILD NOTES
+
+The ready-to-load release extension is in the sibling folder Archive Shelf Recorder; its manifest version is 1.0.0. The readable source project is based on Webrecorder ArchiveWeb.page 0.17.5, as recorded in package.json. The 0.17.5 number identifies the upstream source package; it is not the Archive Shelf release version. Building this source produces a development extension whose manifest follows the source package version.
+
+TO REBUILD AFTER CHANGING SOURCE
+1. Install Node.js on the computer that will do the build.
+2. Open a terminal in this folder: browser-extension/archiveweb-page-source.
+3. Install dependencies with:
+   node yarn-4.17.1.cjs install --immutable --mode=skip-build
+   A clean checkout needs internet access to download packages.
+4. Build the extension:
+   node yarn-4.17.1.cjs build
+5. The build creates dist/ext. Reload that folder in Chrome or Brave to inspect a development build. Before using a rebuilt extension as an Archive Shelf release, set and verify its manifest version and confirm the Archive Shelf integration and privacy settings.
+
+Make changes in src/ and static/, not in generated dist/ files. The files in the sibling Archive Shelf Recorder folder are the ready-to-load Archive Shelf 1.0.0 build.
+
+The separate Check ReplayWeb.page Updates.bat tool changes the embedded archive reader version. It does not update this source or rebuild the recorder. Review upstream changes and the included LICENSE.md before distributing modified copies.
+
+Upstream source: https://github.com/webrecorder/archiveweb.page
+Upstream capture guide: https://archiveweb.page/en/usage/
